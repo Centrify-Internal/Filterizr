@@ -2,6 +2,9 @@
 * Filterizr is a jQuery plugin that sorts, shuffles and applies stunning filters over
 * responsive galleries using CSS3 transitions and custom CSS effects.
 *
+*	TJM: Update to modify this so that we have a custom layout that we need. I might look into actually forking the repo and 
+*		maybe seeing if I can have a private bower instance to add the library that way.
+*
 * @author Yiotis Kaltsikis
 * @see {@link http://yiotis.net/filterizr}
 * @version 1.2.5
@@ -238,7 +241,11 @@
                 array  = self._multifilterModeOn() ?
                             self._makeMultifilterArray() :
                             self._getCollectionByFilter(self.options.filter),
-                target = [], i = 0;
+				target = [], i = 0;
+				
+			if(!array) {
+				return;
+			}
 
             if (self._isSearchActivated()) {
                 for (i = 0; i < array.length; i++) {
@@ -553,8 +560,12 @@
         * @private
         */
         _calcItemPositions: function() {
-            var self  = this,
-                array = self._activeArray,
+			var self  = this;
+			if(!self._activeArray) {
+				return [];
+			}
+
+            var array = self._activeArray,
             //Container data
             containerHeight = 0,
             cols = Math.round(self.width() / self.find('.filtr-item').outerWidth()),
@@ -689,11 +700,71 @@
                 }
                 rows = Math.ceil(array.length / cols);
                 containerHeight = rows * array[0].outerHeight();
+			}
+			//Layout of items for varied height and varying width
+            else if (self.options.layout === 'variedHeightAndWidth') {
+                rows = 1;
+				var rowWidth = self.outerWidth();
+				var indexOfFirstItemInRow = 0;
+				var rowHeights = [];
+				var maxHeightItemInRow = 0;
+
+                for (i = 1; i <= array.length; i++) {
+                    itemWidth = array[i - 1].width();
+                    var itemOuterWidth = array[i - 1].outerWidth(),
+                    nextItemWidth = 0;
+                    if (array[i]) nextItemWidth = array[i].width();
+                    posArray.push({
+                        left: left,
+                        top: top
+                    });
+                    x = left + itemWidth + nextItemWidth;
+                    if (x > rowWidth) {
+						maxHeightItemInRow = self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i));
+
+                        x 	 = 0;
+                        left = 0;
+						top  += maxHeightItemInRow;
+						
+						//TJM: Store the row height to use later... current row height should be the same as the max height item.
+						rowHeights.push(maxHeightItemInRow);
+						
+						//TJM: Update the index of the first item in the row so we can calculate proper height next time.
+						indexOfFirstItemInRow = i;
+
+						rows++;
+                    }
+                    else left += itemOuterWidth;
+				}
+				
+				// Make sure to get the max height of the last row.
+				rowHeights.push(self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i)));
+
+                containerHeight = rowHeights.reduce(function(heightSum, curRowHeight) {
+					return heightSum + curRowHeight;
+				}, 0);
             }
             //Update the height of .filtr-container based on new positions
             self.css('height', containerHeight);
             return posArray;
-        },
+		},
+		
+		_getMaxHeightOfArrayItems: function (items) {
+			if(!items || !Array.isArray(items)) {
+				return 0;
+			}
+
+			var maxHeight = 0;
+			var itemHeight = 0;
+			for(var i = 0; i < items.length; i++) {
+				itemHeight = items[i].outerHeight();
+				if(itemHeight > maxHeight) {
+					maxHeight = itemHeight;
+				}
+			}
+
+			return maxHeight;
+		},
 
         /**
         * Handles filtering in/out and reposition items when transition between categories
@@ -738,6 +809,10 @@
         * @private
         */
         _placeItems: function(arr) {
+			if(!arr) {
+				return;
+			}
+
             var self = this;
             //Tag gallery state as animating
             self._isAnimating = true;
@@ -809,11 +884,11 @@
         * @private
         */
         _getArrayOfUniqueItems: function(arr1, arr2) {
-            var r = [], o = {}, l = arr2.length, i, v;
+            var r = [], o = {}, l = arr2 ? arr2.length : 0, i, v;
             for (i = 0; i < l; i++) {
                 o[arr2[i].domIndex] = true;
             }
-            l = arr1.length;
+            l = arr1 ? arr1.length : 0;
             for (i = 0; i < l; i++) {
                 v = arr1[i];
                 if (!(v.domIndex in o)) {

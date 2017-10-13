@@ -5,13 +5,15 @@ If you use Filterizr in your project and wish to get it featured on Filterizr's 
 Filterizr is a jQuery plugin that sorts, shuffles, searches and applies stunning filters over responsive galleries using CSS3 transitions. Write your very own, custom effects in CSS and watch your gallery come to life!
 
 ## Install
-You can install Filterizr by downloading the minified version from its website or through NPM or Bower:
+You can install Filterizr through Bower:
 ```
-npm install filterizr
+bower install git@github.com:Centrify-Internal/Filterizr.git --save
 ```
-or
+
+Make sure that you are using a command shell in which you are already connected to Github via SSH. For example, using Git Bash shell: 
 ```
-bower install filterizr
+eval $(ssh-agent)
+ssh-add
 ```
 
 ## Documentation & Tutorials
