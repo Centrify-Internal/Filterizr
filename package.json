@@ -31,5 +31,16 @@
   "bugs": {
     "url": "https://github.com/giotiskl/filterizr/issues"
   },
-  "homepage": "https://github.com/giotiskl/Filterizr#readme"
+  "homepage": "https://github.com/giotiskl/Filterizr#readme",
+  "devDependencies": {
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^3.0.0",
+    "gulp-util": "^3.0.8",
+    "is-there": "^4.4.3",
+    "mkdirp": "^0.5.1"
+  }
 }
