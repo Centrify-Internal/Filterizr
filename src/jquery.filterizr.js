@@ -134,7 +134,8 @@
                     'transform': 'scale(1)'
                 },
                 layout: 'sameSize',
-                setupControls: true
+				setupControls: true,
+				noResultsCssClass: 'filterizr-no-results'
             };
             //No arguments constructor
             if (arguments.length === 0) {
@@ -159,6 +160,11 @@
             self._mainArray   = self._getFiltrItems();
             self._subArrays   = self._makeSubarrays();
             self._activeArray = self._getCollectionByFilter(self.options.filter);
+				var setNoResultsClass = false;
+				if(!self._activeArray || self._activeArray.length === 0) {
+					setNoResultsClass = true;
+				}
+				self._shouldSetNoResultsClass(setNoResultsClass);
             //Used for multiple category filtering
             self._toggledCategories = { };
             //Used for search feature
@@ -192,8 +198,15 @@
             self.trigger('filteringStart');
             //Filter items
             self._handleFiltering(target);
-            //Apply search filter on top if activated
-            if (self._isSearchActivated()) self.search(self._typedText);
+			
+			if(!self._activeArray || self._activeArray.length === 0) {
+				self._shouldSetNoResultsClass(true);
+			}
+			else {
+				self._shouldSetNoResultsClass(false);
+			}
+				//Apply search filter on top if activated
+				if (self._isSearchActivated()) self.search(self._typedText);
         },
 
         /**
@@ -260,6 +273,7 @@
             //Show the results
             if (target.length > 0) {
                 self._handleFiltering(target);
+					self._shouldSetNoResultsClass(false);
             }
             //If there are no results
             else {
@@ -268,10 +282,13 @@
                     for (i = 0; i < self._activeArray.length; i++) {
                         self._activeArray[i]._filterOut();
                     }
+						//TJM: This is a special case because the active array isn't cleared out when we do a search and have no results.
+						self._shouldSetNoResultsClass(true);
                 }
                 //if search is not activated display gallery with last applied filter
                 else {
                     self._handleFiltering(array);
+						self._shouldSetNoResultsClass(false);
                 }
             }
         },
@@ -393,7 +410,22 @@
                 itemsArray.push(item);
             });
             return itemsArray;
-        },
+		},
+		
+		/**
+		 * Adds/Removes the {@link noResultsCssClass} to the filterizr container element.
+		 * 
+		 * @param {Boolean} shouldSetClass - true to add the class / false to remove the class.
+		 * @private
+		 */
+		_shouldSetNoResultsClass: function(shouldSetClass) {
+			if(shouldSetClass) {
+					this.addClass(this.options.noResultsCssClass);
+			}
+			else {
+					this.removeClass(this.options.noResultsCssClass);
+			}
+		},
 
         /**
         * Divide .filtr-item elements into sub-arrays based on data-category attribute.
