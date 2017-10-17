@@ -454,13 +454,19 @@
 				for (i = 0; i < self._mainArray.length; i++) {
 					//Multiple categories scenario
 					if (typeof self._mainArray[i]._category === 'object') {
-						var length = self._mainArray[i]._category.length;
+						var length = self._mainArray[i]._category ? self._mainArray[i]._category.length : 0;
 						for (var x = 0; x < length; x++) {
-							subArrays[self._mainArray[i]._category[x] - 1].push(self._mainArray[i]);
+							if(subArrays && self._mainArray[i]._category) {
+								subArrays[self._mainArray[i]._category[x] - 1].push(self._mainArray[i]);
+							}
 						}
 					}
 					//Single category
-					else subArrays[self._mainArray[i]._category - 1].push(self._mainArray[i]);
+					else {
+						if(subArrays && self._mainArray[i]._category) {
+							subArrays[self._mainArray[i]._category - 1].push(self._mainArray[i]);
+						}
+					}
 				}
 				return subArrays;
 			},
