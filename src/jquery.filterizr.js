@@ -135,7 +135,11 @@
 					},
 					layout: 'sameSize',
 					setupControls: true,
-					noResultsCssClass: 'filterizr-no-results'
+					noResultsCssClass: 'filterizr-no-results',
+					seeMoreBtnCssSelector: '.filterizr-see-more-click',
+					//TJM: If set to -1, we will just show all the rows.
+					seeMoreNumRowsToShow: -1,
+					seeMoreActiveCssClass: 'filterizr-see-more-active'
 				};
 				//No arguments constructor
 				if (arguments.length === 0) {
@@ -147,6 +151,10 @@
 				if (options) {
 					self.setOptions(options);
 				}
+
+				self._setupSeeMoreFeature();
+
+
 				//Private properties
 				self.css({ //Cache reference to container as jQuery obj and init its CSS
 					'padding' : 0,
@@ -790,13 +798,52 @@
 					// Make sure to get the max height of the last row.
 					rowHeights.push(self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i)));
 	
-					containerHeight = rowHeights.reduce(function(heightSum, curRowHeight) {
+					containerHeight = rowHeights.reduce(function(heightSum, curRowHeight, index) {
+						if(self._shouldApplySeeMore() && index >= self.options.seeMoreNumRowsToShow) {
+							//TJM: Limit the height for "see more" feature
+							return heightSum;
+						}
 						return heightSum + curRowHeight;
 					}, 0);
 				}
 				//Update the height of .filtr-container based on new positions
 				self.css('height', containerHeight);
 				return posArray;
+			},
+
+			_setupSeeMoreFeature: function() {
+				var self = this;
+
+				//TJM: Determine if we even bother with the see more feature.
+				this._isSeeMoreActive = this._isSeeMoreRowsNumValid && typeof(this.options.seeMoreBtnCssSelector) === 'string';
+
+				if(this._isSeeMoreActive) {
+					//TJM: Put a class on the gallery to indicate that "see more" is active.
+					this.addClass(self.options.seeMoreActiveCssClass);					
+
+					$(this.options.seeMoreBtnCssSelector).on('click', function (evt) {
+						evt.preventDefault();
+
+						//TJM: We want to kill the feature after we click it to reveal more.
+						self._isSeeMoreActive = false;
+
+						//TJM: Update positions to mainly redo the height calculation.
+						self._calcItemPositions();
+
+						//TJM: Remove a CSS class on the gallery to indicate that "see more" is not active.
+						self.removeClass(self.options.seeMoreActiveCssClass);
+					});
+				}
+			},
+
+			_isSeeMoreRowsNumValid: function () {
+				//TJM: Make sure num rows to show is valid (and at least 0)
+				return (!isNaN(this.options.seeMoreNumRowsToShow) && this.options.seeMoreNumRowsToShow >= 0);
+			},
+
+			_shouldApplySeeMore: function () {
+				//TJM: Make sure num rows to show is valid (and at least 0) and the see more feature is active.
+				return (this._isSeeMoreRowsNumValid && this._isSeeMoreActive);
 			},
 			
 			_getMaxHeightOfArrayItems: function (items) {
