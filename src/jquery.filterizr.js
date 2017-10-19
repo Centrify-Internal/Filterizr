@@ -137,8 +137,8 @@
 					setupControls: true,
 					noResultsCssClass: 'filterizr-no-results',
 					seeMoreBtnCssSelector: '.filterizr-see-more-click',
-					//TJM: If set to -1, we will just show all the rows.
-					seeMoreNumRowsToShow: -1,
+					//TJM: If set to -1, we will just show all the items.
+					seeMoreNumItemsToShow: -1,
 					seeMoreActiveCssClass: 'filterizr-see-more-active'
 				};
 				//No arguments constructor
@@ -421,7 +421,7 @@
 			*/
 			_getFiltrItems: function() {
 				var shouldSlice = this._isSeeMoreActive;
-				var sliceEndIndex = 8;
+				var sliceEndIndex = this.options.seeMoreNumItemsToShow;
 
 				var self       = this,
 				filtrItems = null,
@@ -436,7 +436,7 @@
 						filtrItems = $(self.find('.filtr-item').slice(sliceEndIndex));
 					}
 					else {
-						$(self.find('.filtr-item'));
+						filtrItems = $(self.find('.filtr-item'));
 					}
 				}
 	
@@ -640,7 +640,7 @@
 			*/
 			_calcItemPositions: function() {
 				var self  = this;
-				if(!self._activeArray) {
+				if(!self._activeArray || self._activeArray.length === 0) {
 					return [];
 				}
 	
@@ -820,7 +820,7 @@
 					rowHeights.push(self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i)));
 	
 					containerHeight = rowHeights.reduce(function(heightSum, curRowHeight, index) {
-						// if(self._shouldApplySeeMore() && index >= self.options.seeMoreNumRowsToShow) {
+						// if(self._shouldApplySeeMore() && index >= self.options.seeMoreNumItemsToShow) {
 						// 	//TJM: Limit the height for "see more" feature
 						// 	return heightSum;
 						// }
@@ -836,7 +836,7 @@
 				var self = this;
 
 				//TJM: Determine if we even bother with the see more feature.
-				this._isSeeMoreActive = this._isSeeMoreRowsNumValid() && typeof(this.options.seeMoreBtnCssSelector) === 'string';
+				this._isSeeMoreActive = this._isSeeMoreItemsNumValid() && typeof(this.options.seeMoreBtnCssSelector) === 'string';
 
 				if(this._isSeeMoreActive) {
 					//TJM: Put a class on the gallery to indicate that "see more" is active.
@@ -868,14 +868,14 @@
 				}
 			},
 
-			_isSeeMoreRowsNumValid: function () {
+			_isSeeMoreItemsNumValid: function () {
 				//TJM: Make sure num rows to show is valid (and at least 0)
-				return (!isNaN(this.options.seeMoreNumRowsToShow) && this.options.seeMoreNumRowsToShow >= 0);
+				return (!isNaN(this.options.seeMoreNumItemsToShow) && this.options.seeMoreNumItemsToShow >= 0);
 			},
 
 			_shouldApplySeeMore: function () {
 				//TJM: Make sure num rows to show is valid (and at least 0) and the see more feature is active.
-				return (this._isSeeMoreRowsNumValid && this._isSeeMoreActive);
+				return (this._isSeeMoreItemsNumValid && this._isSeeMoreActive);
 			},
 			
 			_getMaxHeightOfArrayItems: function (items) {
