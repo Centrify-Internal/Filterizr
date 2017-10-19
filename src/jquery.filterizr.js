@@ -420,13 +420,34 @@
 			* @private
 			*/
 			_getFiltrItems: function() {
+				var shouldSlice = this._isSeeMoreActive;
+				var sliceEndIndex = 8;
+
 				var self       = this,
-				filtrItems = $(self.find('.filtr-item')),
+				filtrItems = null,
 				itemsArray = [];
+
+				if(shouldSlice) {
+					filtrItems = $(self.find('.filtr-item').slice(0, sliceEndIndex));
+				}
+				else {
+					if(this._mainArray && this._mainArray.length > 0) {
+						//TJM: Instead of getting all the items...only retrive those that we haven't processed yet.
+						filtrItems = $(self.find('.filtr-item').slice(sliceEndIndex));
+					}
+					else {
+						$(self.find('.filtr-item'));
+					}
+				}
 	
 				$.each(filtrItems, function(i, e) {
+					var $elem = $(e);
+					
+					//TEST: try adding class to each item that gets processed by filterizr.
+					$elem.addClass('filterizd');
+
 					//Set item up as Filtr object & push to array
-					var item = $(e).extend(FiltrItemProto)._init(i, self);
+					var item = $elem.extend(FiltrItemProto)._init(i, self);
 					itemsArray.push(item);
 				});
 				return itemsArray;
@@ -799,10 +820,10 @@
 					rowHeights.push(self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i)));
 	
 					containerHeight = rowHeights.reduce(function(heightSum, curRowHeight, index) {
-						if(self._shouldApplySeeMore() && index >= self.options.seeMoreNumRowsToShow) {
-							//TJM: Limit the height for "see more" feature
-							return heightSum;
-						}
+						// if(self._shouldApplySeeMore() && index >= self.options.seeMoreNumRowsToShow) {
+						// 	//TJM: Limit the height for "see more" feature
+						// 	return heightSum;
+						// }
 						return heightSum + curRowHeight;
 					}, 0);
 				}
@@ -815,7 +836,7 @@
 				var self = this;
 
 				//TJM: Determine if we even bother with the see more feature.
-				this._isSeeMoreActive = this._isSeeMoreRowsNumValid && typeof(this.options.seeMoreBtnCssSelector) === 'string';
+				this._isSeeMoreActive = this._isSeeMoreRowsNumValid() && typeof(this.options.seeMoreBtnCssSelector) === 'string';
 
 				if(this._isSeeMoreActive) {
 					//TJM: Put a class on the gallery to indicate that "see more" is active.
@@ -828,7 +849,18 @@
 						self._isSeeMoreActive = false;
 
 						//TJM: Update positions to mainly redo the height calculation.
-						self._calcItemPositions();
+//						self._calcItemPositions();
+						var filtrItems = self._getFiltrItems();
+						if(self._mainArray && self._mainArray.length > 0) {
+							self._mainArray = self._mainArray.concat(filtrItems);
+						}
+						else {
+							self._mainArray = filtrItems;
+						}
+						self._subArrays   = self._makeSubarrays();
+						self._activeArray = self._getCollectionByFilter(self.options.filter);
+
+						self.filter(self.options.filter);
 
 						//TJM: Remove a CSS class on the gallery to indicate that "see more" is not active.
 						self.removeClass(self.options.seeMoreActiveCssClass);
