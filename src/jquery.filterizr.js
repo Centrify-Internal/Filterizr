@@ -820,10 +820,6 @@
 					rowHeights.push(self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i)));
 	
 					containerHeight = rowHeights.reduce(function(heightSum, curRowHeight, index) {
-						// if(self._shouldApplySeeMore() && index >= self.options.seeMoreNumItemsToShow) {
-						// 	//TJM: Limit the height for "see more" feature
-						// 	return heightSum;
-						// }
 						return heightSum + curRowHeight;
 					}, 0);
 				}
@@ -848,8 +844,7 @@
 						//TJM: We want to kill the feature after we click it to reveal more.
 						self._isSeeMoreActive = false;
 
-						//TJM: Update positions to mainly redo the height calculation.
-//						self._calcItemPositions();
+						//TJM: Update filtering now that we're showing the rest.
 						var filtrItems = self._getFiltrItems();
 						if(self._mainArray && self._mainArray.length > 0) {
 							self._mainArray = self._mainArray.concat(filtrItems);
