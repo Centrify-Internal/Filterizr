@@ -137,8 +137,8 @@
 					setupControls: true,
 					noResultsCssClass: 'filterizr-no-results',
 					seeMoreBtnCssSelector: '.filterizr-see-more-click',
-					//TJM: If set to -1, we will just show all the rows.
-					seeMoreNumRowsToShow: -1,
+					//TJM: If set to -1, we will just show all the items.
+					seeMoreNumItemsToShow: -1,
 					seeMoreActiveCssClass: 'filterizr-see-more-active'
 				};
 				//No arguments constructor
@@ -420,13 +420,34 @@
 			* @private
 			*/
 			_getFiltrItems: function() {
+				var shouldSlice = this._isSeeMoreActive;
+				var sliceEndIndex = this.options.seeMoreNumItemsToShow;
+
 				var self       = this,
-				filtrItems = $(self.find('.filtr-item')),
+				filtrItems = null,
 				itemsArray = [];
+
+				if(shouldSlice) {
+					filtrItems = $(self.find('.filtr-item').slice(0, sliceEndIndex));
+				}
+				else {
+					if(this._mainArray && this._mainArray.length > 0) {
+						//TJM: Instead of getting all the items...only retrive those that we haven't processed yet.
+						filtrItems = $(self.find('.filtr-item').slice(sliceEndIndex));
+					}
+					else {
+						filtrItems = $(self.find('.filtr-item'));
+					}
+				}
 	
 				$.each(filtrItems, function(i, e) {
+					var $elem = $(e);
+					
+					//TEST: try adding class to each item that gets processed by filterizr.
+					$elem.addClass('filterizd');
+
 					//Set item up as Filtr object & push to array
-					var item = $(e).extend(FiltrItemProto)._init(i, self);
+					var item = $elem.extend(FiltrItemProto)._init(i, self);
 					itemsArray.push(item);
 				});
 				return itemsArray;
@@ -619,7 +640,7 @@
 			*/
 			_calcItemPositions: function() {
 				var self  = this;
-				if(!self._activeArray) {
+				if(!self._activeArray || self._activeArray.length === 0) {
 					return [];
 				}
 	
@@ -799,10 +820,6 @@
 					rowHeights.push(self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i)));
 	
 					containerHeight = rowHeights.reduce(function(heightSum, curRowHeight, index) {
-						if(self._shouldApplySeeMore() && index >= self.options.seeMoreNumRowsToShow) {
-							//TJM: Limit the height for "see more" feature
-							return heightSum;
-						}
 						return heightSum + curRowHeight;
 					}, 0);
 				}
@@ -815,7 +832,7 @@
 				var self = this;
 
 				//TJM: Determine if we even bother with the see more feature.
-				this._isSeeMoreActive = this._isSeeMoreRowsNumValid && typeof(this.options.seeMoreBtnCssSelector) === 'string';
+				this._isSeeMoreActive = this._isSeeMoreItemsNumValid() && typeof(this.options.seeMoreBtnCssSelector) === 'string';
 
 				if(this._isSeeMoreActive) {
 					//TJM: Put a class on the gallery to indicate that "see more" is active.
@@ -827,8 +844,18 @@
 						//TJM: We want to kill the feature after we click it to reveal more.
 						self._isSeeMoreActive = false;
 
-						//TJM: Update positions to mainly redo the height calculation.
-						self._calcItemPositions();
+						//TJM: Update filtering now that we're showing the rest.
+						var filtrItems = self._getFiltrItems();
+						if(self._mainArray && self._mainArray.length > 0) {
+							self._mainArray = self._mainArray.concat(filtrItems);
+						}
+						else {
+							self._mainArray = filtrItems;
+						}
+						self._subArrays   = self._makeSubarrays();
+						self._activeArray = self._getCollectionByFilter(self.options.filter);
+
+						self.filter(self.options.filter);
 
 						//TJM: Remove a CSS class on the gallery to indicate that "see more" is not active.
 						self.removeClass(self.options.seeMoreActiveCssClass);
@@ -836,14 +863,14 @@
 				}
 			},
 
-			_isSeeMoreRowsNumValid: function () {
+			_isSeeMoreItemsNumValid: function () {
 				//TJM: Make sure num rows to show is valid (and at least 0)
-				return (!isNaN(this.options.seeMoreNumRowsToShow) && this.options.seeMoreNumRowsToShow >= 0);
+				return (!isNaN(this.options.seeMoreNumItemsToShow) && this.options.seeMoreNumItemsToShow >= 0);
 			},
 
 			_shouldApplySeeMore: function () {
 				//TJM: Make sure num rows to show is valid (and at least 0) and the see more feature is active.
-				return (this._isSeeMoreRowsNumValid && this._isSeeMoreActive);
+				return (this._isSeeMoreItemsNumValid && this._isSeeMoreActive);
 			},
 			
 			_getMaxHeightOfArrayItems: function (items) {
