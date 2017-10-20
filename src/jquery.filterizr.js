@@ -1191,8 +1191,9 @@
 					self._parent._isAnimating = false;
 				}
 
-				//TJM: Check if all items are filtered out at this point
-				var filtrItems = self._parent.find('.filtr-item');
+				//TJM: Check if all filterizd items are filtered out at this point...added the "filterizd" distinction in case 
+				//		we have some items that haven't been handled by this library.
+				var filtrItems = self._parent.find('.filtr-item.filterizd');
 				var filtrItemsOut = filtrItems.filter('.filteredOut');
 				if(filtrItems.length === filtrItemsOut.length) {
 					// We want to wait until transitions are done before we set no results.
