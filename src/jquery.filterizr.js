@@ -1090,6 +1090,10 @@
 				self._isFilteredOut = true;
 				self._filteringOut  = false;
 				self._filteringIn   = false;
+				
+				//TJM: Set the filteredOut CSS class since we are setting it in our data.
+				self.addClass('filteredOut');
+
 				//Determine delay & set initial item styles
 				self.css(parent.options.filterOutCss)
 				.css({
