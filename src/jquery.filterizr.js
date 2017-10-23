@@ -1176,8 +1176,10 @@
 					self._filteringOut  = false;
 				}
 				//finished filtering in
-				else if (self._filteringIn) {
-					self._isFilteredOut = false;
+				if (self._filteringIn) {
+					if(!self._isFilteredOut) {
+						self._isFilteredOut = false;
+					}
 					self._filteringIn 	= false;
 				}
 				//if animating trigger filteringEnd event once on parent
@@ -1246,7 +1248,14 @@
 				//Auto add translate to transform over user-defined filterIn styles
 				filterInCss.transform += ' translate3d(' + targetPos.left + 'px,' + targetPos.top + 'px, 0)';
 				//Play animation
-				self.css(filterInCss);			
+				self.css(filterInCss);
+				
+				if(self._isFilteredOut) {
+					//TJM: If not already filtered out, then the element will already be filtered in and SHOULD have the 
+					//		filtered-in CSS applied. And in that case, the transition end event won't happen, so immediately set the filtering-in to false.
+					self._filteringIn = false;
+				}
+
 			}
 		};
 	
