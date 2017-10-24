@@ -422,6 +422,8 @@
 			_getFiltrItems: function() {
 				var shouldSlice = this._isSeeMoreActive;
 				var sliceEndIndex = this.options.seeMoreNumItemsToShow;
+				//TJM: Use this to calculate a proper domIndex when we add more items.
+				var domIndexStart = 0;
 
 				var self       = this,
 				filtrItems = null,
@@ -434,6 +436,7 @@
 					if(this._mainArray && this._mainArray.length > 0) {
 						//TJM: Instead of getting all the items...only retrive those that we haven't processed yet.
 						filtrItems = $(self.find('.filtr-item').slice(sliceEndIndex));
+						domIndexStart = this._mainArray.length;
 					}
 					else {
 						filtrItems = $(self.find('.filtr-item'));
@@ -447,7 +450,7 @@
 					$elem.addClass('filterizd');
 
 					//Set item up as Filtr object & push to array
-					var item = $elem.extend(FiltrItemProto)._init(i, self);
+					var item = $elem.extend(FiltrItemProto)._init(domIndexStart + i, self);
 					itemsArray.push(item);
 				});
 				return itemsArray;
