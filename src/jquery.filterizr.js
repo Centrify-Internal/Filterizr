@@ -446,7 +446,7 @@
 				$.each(filtrItems, function(i, e) {
 					var $elem = $(e);
 					
-					//TEST: try adding class to each item that gets processed by filterizr.
+					//TJM: adding class to each item that gets processed by filterizr.
 					$elem.addClass('filterizd');
 
 					//Set item up as Filtr object & push to array
