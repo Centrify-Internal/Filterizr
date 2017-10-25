@@ -662,6 +662,12 @@
 				i = 0, x = 0,
 				//Array of positions to return
 				posArray = [];
+
+				//TJM: Unset any forced heights if they are set so they don't interfere with position calculations.
+				var loopInd;
+				for(loopInd = 0; loopInd < array.length; loopInd++) {
+					array[loopInd]._unsetForcedHeight();
+				}
 	
 				//Layout for items of varying sizes
 				if (self.options.layout === 'packed') {
@@ -848,7 +854,10 @@
 						if (x > rowWidth) {
 							maxHeightItemInRow = self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i));
 
-							self._setItemPositionHeights(posArray, indexOfFirstItemInRow, i, maxHeightItemInRow);
+							if(Math.abs(indexOfFirstItemInRow - i) > 1) {
+								//TJM: We only want to set the height if there is more than one item in a "row".
+								self._setItemPositionHeights(posArray, indexOfFirstItemInRow, i, maxHeightItemInRow);
+							}
 	
 							x 	 = 0;
 							left = 0;
@@ -868,7 +877,10 @@
 					// Make sure to get the max height of the last row.
 					maxHeightItemInRow = self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i));
 					rowHeights.push(maxHeightItemInRow);
-					self._setItemPositionHeights(posArray, indexOfFirstItemInRow, i, maxHeightItemInRow);					
+					if(Math.abs(indexOfFirstItemInRow - i) > 1) {
+						//TJM: We only want to set the height if there is more than one item in a "row".
+						self._setItemPositionHeights(posArray, indexOfFirstItemInRow, i, maxHeightItemInRow);
+					}
 	
 					containerHeight = rowHeights.reduce(function(heightSum, curRowHeight, index) {
 						return heightSum + curRowHeight;
@@ -1336,6 +1348,8 @@
 				if(!isNaN(targetPos.height)) {
 					//TJM: If that height is set, then it means we want to force the height of the item.
 					filterInCss.height = targetPos.height;
+
+					self._isForcedHeightSet = true;
 				}
 
 				//Play animation
@@ -1347,7 +1361,16 @@
 					self._filteringIn = false;
 				}
 
+			},
+
+			_unsetForcedHeight: function () {
+				if(this._isForcedHeightSet) {
+					//TJM: Unset the forced height
+					this.css('height', '');
+					this._isForcedHeightSet = false;
+				}
 			}
+
 		};
 	
 	})(this, jQuery);
