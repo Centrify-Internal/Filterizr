@@ -133,6 +133,10 @@
 						'opacity': 1,
 						'transform': 'scale(1)'
 					},
+					filterInSeeMoreCss: {
+						'opacity': 1,
+						'transform': 'scale(1)'
+					},
 					layout: 'sameSize',
 					setupControls: true,
 					noResultsCssClass: 'filterizr-no-results',
@@ -425,6 +429,7 @@
 				//TJM: Use this to calculate a proper domIndex when we add more items.
 				var domIndexStart = 0;
 				var filtrItemClassSelector = '.filtr-item';
+				var shouldUseFilterInSeeMoreCss = false;
 
 				var self       = this,
 				filtrItems = null,
@@ -438,6 +443,9 @@
 						//TJM: Instead of getting all the items...only retrive those that we haven't processed yet.
 						filtrItems = $(self.find(filtrItemClassSelector).slice(sliceEndIndex));
 						domIndexStart = this._mainArray.length;
+
+						//TJM: Assume we're doing this because of "See More" feature
+						shouldUseFilterInSeeMoreCss = true;
 					}
 					else {
 						filtrItems = $(self.find(filtrItemClassSelector));
@@ -451,7 +459,9 @@
 					$elem.addClass('filterizd');
 
 					//Set item up as Filtr object & push to array
-					var item = $elem.extend(FiltrItemProto)._init(domIndexStart + i, self);
+					var item = $elem.extend(FiltrItemProto)._init(domIndexStart + i, self, {
+						shouldUseFilterInSeeMoreCss: shouldUseFilterInSeeMoreCss
+					});
 					itemsArray.push(item);
 				});
 				return itemsArray;
@@ -1176,7 +1186,7 @@
 			* @return {jQuery} this - to facilitate method chaining.
 			* @constructor
 			*/
-			_init: function(index, parent) {
+			_init: function(index, parent, options) {
 				var self = this, delay = 0;
 				//Private item properties
 				self._parent   = parent;			  //Ref to parent Filterizr object
@@ -1192,6 +1202,10 @@
 				self._isFilteredOut = true;
 				self._filteringOut  = false;
 				self._filteringIn   = false;
+
+				self._options = options || {};
+				//TJM: Set to true to make sure it is a real boolean.
+				self._options.shouldUseFilterInSeeMoreCss = !!self._options.shouldUseFilterInSeeMoreCss;
 				
 				//TJM: Set the filteredOut CSS class since we are setting it in our data.
 				self.addClass('filteredOut');
@@ -1342,8 +1356,18 @@
 			*/
 			_filterIn: function(targetPos) {
 				var self        = this,
-					filterInCss = self._parent._makeDeepCopy(self._parent.options.filterInCss);
+					filterInCss;
 				
+				if(self._options.shouldUseFilterInSeeMoreCss) {
+					filterInCss = self._parent._makeDeepCopy(self._parent.options.filterInSeeMoreCss);
+					
+					//TJM: We only want to use "See More" once on an item since we can only reveal it once.
+					self._options.shouldUseFilterInSeeMoreCss = false;
+				}
+				else {
+					filterInCss = self._parent._makeDeepCopy(self._parent.options.filterInCss);				
+				}
+
 				//Remove the filteredOut class
 				$(self).removeClass('filteredOut');
 				//Tag as filtering in for transitionend event
@@ -1352,6 +1376,9 @@
 				//Make clickable
 				self.css('pointer-events', 'auto');
 				//Auto add translate to transform over user-defined filterIn styles
+				if(!filterInCss.transform) {
+					filterInCss.transform = '';
+				}
 				filterInCss.transform += ' translate3d(' + targetPos.left + 'px,' + targetPos.top + 'px, 0)';
 
 				if(!isNaN(targetPos.height)) {
@@ -1364,9 +1391,10 @@
 				//Play animation
 				self.css(filterInCss);
 				
-				if(self._isFilteredOut) {
+				if(self._isFilteredOut || !self.css('transition')) {
 					//TJM: If not already filtered out, then the element will already be filtered in and SHOULD have the 
 					//		filtered-in CSS applied. And in that case, the transition end event won't happen, so immediately set the filtering-in to false.
+					// Also, check the filter-in CSS for transition...if there isn't one, unset the filtering in flag here, since transition end event won't fire.
 					self._filteringIn = false;
 				}
 
