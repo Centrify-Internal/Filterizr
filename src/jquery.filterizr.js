@@ -923,6 +923,8 @@
 
 			_setupSeeMoreFeature: function() {
 				var self = this;
+				var seeMoreClickEventName = 'click.filterizr-see-more';
+				var $seeMoreBtn;
 
 				//TJM: Determine if we even bother with the see more feature.
 				this._isSeeMoreActive = this._isSeeMoreItemsNumValid() && typeof(this.options.seeMoreBtnCssSelector) === 'string';
@@ -931,7 +933,8 @@
 					//TJM: Put a class on the gallery to indicate that "see more" is active.
 					this.addClass(self.options.seeMoreActiveCssClass);					
 
-					$(this.options.seeMoreBtnCssSelector).on('click', function (evt) {
+					$seeMoreBtn = $(this.options.seeMoreBtnCssSelector);
+					$seeMoreBtn.on(seeMoreClickEventName, function (evt) {
 						evt.preventDefault();
 
 						//TJM: We want to kill the feature after we click it to reveal more.
@@ -952,6 +955,10 @@
 
 						//TJM: Remove a CSS class on the gallery to indicate that "see more" is not active.
 						self.removeClass(self.options.seeMoreActiveCssClass);
+
+						//TJM: I thought about turning off "see more" after first click, but that's not a hard rule in place 
+						//		by the library so I shouldn't handle that here.
+						//$seeMoreBtn.off(seeMoreClickEventName);
 					});
 				}
 			},
