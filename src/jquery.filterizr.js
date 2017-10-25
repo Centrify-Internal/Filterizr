@@ -827,9 +827,86 @@
 						return heightSum + curRowHeight;
 					}, 0);
 				}
+				//Layout of items for forcing the same height in each row and varying width
+				else if (self.options.layout === 'sameHeightPerRowAndVariedWidth') {
+					rows = 1;
+					var rowWidth = self.outerWidth();
+					var indexOfFirstItemInRow = 0;
+					var rowHeights = [];
+					var maxHeightItemInRow = 0;
+	
+					for (i = 1; i <= array.length; i++) {
+						itemWidth = array[i - 1].width();
+						var itemOuterWidth = array[i - 1].outerWidth(),
+						nextItemWidth = 0;
+						if (array[i]) nextItemWidth = array[i].width();
+						posArray.push({
+							left: left,
+							top: top
+						});
+						x = left + itemWidth + nextItemWidth;
+						if (x > rowWidth) {
+							maxHeightItemInRow = self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i));
+
+							self._setItemPositionHeights(posArray, indexOfFirstItemInRow, i, maxHeightItemInRow);
+	
+							x 	 = 0;
+							left = 0;
+							top  += maxHeightItemInRow;
+							
+							//TJM: Store the row height to use later... current row height should be the same as the max height item.
+							rowHeights.push(maxHeightItemInRow);
+							
+							//TJM: Update the index of the first item in the row so we can calculate proper height next time.
+							indexOfFirstItemInRow = i;
+	
+							rows++;
+						}
+						else left += itemOuterWidth;
+					}
+					
+					// Make sure to get the max height of the last row.
+					maxHeightItemInRow = self._getMaxHeightOfArrayItems(array.slice(indexOfFirstItemInRow, i));
+					rowHeights.push(maxHeightItemInRow);
+					self._setItemPositionHeights(posArray, indexOfFirstItemInRow, i, maxHeightItemInRow);					
+	
+					containerHeight = rowHeights.reduce(function(heightSum, curRowHeight, index) {
+						return heightSum + curRowHeight;
+					}, 0);
+				}
 				//Update the height of .filtr-container based on new positions
 				self.css('height', containerHeight);
 				return posArray;
+			},
+
+
+			/**
+			 * This sets the height on item position objects in an array to the value of the height passed in.
+			 *  This is mainly for forcing the height to be the same for each item in the array.
+			 * 
+			 * @param {Object[]} itemPosArray
+			 * @param {Number} startIndex - The index to start at when setting the heights in the array.
+			 * @param {Number} endIndex - The index to end at when setting the heights in the array. This end index is inclusive
+			 */
+			_setItemPositionHeights: function (itemPosArray, startIndex, endIndex, heightToSet) {
+				if(!itemPosArray || !Array.isArray(itemPosArray)) {
+					return;
+				}
+
+				if(!startIndex || isNaN(startIndex)) {
+					startIndex = 0;
+				}
+				if(!endIndex || isNaN(endIndex) || endIndex >= itemPosArray.length) {
+					endIndex = itemPosArray.length - 1;
+				}
+				if(endIndex < 0) {
+					endIndex = 0;
+				}
+
+				var i;
+				for(i = startIndex; i <= endIndex; i++) {
+					itemPosArray[i].height = heightToSet;
+				}
 			},
 
 			_setupSeeMoreFeature: function() {
@@ -1255,6 +1332,12 @@
 				self.css('pointer-events', 'auto');
 				//Auto add translate to transform over user-defined filterIn styles
 				filterInCss.transform += ' translate3d(' + targetPos.left + 'px,' + targetPos.top + 'px, 0)';
+
+				if(!isNaN(targetPos.height)) {
+					//TJM: If that height is set, then it means we want to force the height of the item.
+					filterInCss.height = targetPos.height;
+				}
+
 				//Play animation
 				self.css(filterInCss);
 				
