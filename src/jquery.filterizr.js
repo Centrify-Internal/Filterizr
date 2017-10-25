@@ -936,6 +936,8 @@
 					$seeMoreBtn = $(this.options.seeMoreBtnCssSelector);
 					$seeMoreBtn.on(seeMoreClickEventName, function (evt) {
 						evt.preventDefault();
+						//TJM: Also, stop propagation to prevent double execution with parent/child elements.
+						evt.stopPropagation();
 
 						//TJM: We want to kill the feature after we click it to reveal more.
 						self._isSeeMoreActive = false;
