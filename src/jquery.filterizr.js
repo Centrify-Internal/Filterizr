@@ -439,7 +439,7 @@
 					filtrItems = $(self.find(filtrItemClassSelector).slice(0, sliceEndIndex));
 				}
 				else {
-					if(this._mainArray && this._mainArray.length > 0) {
+					if(this._mainArray && this._mainArray.length > 0 && sliceEndIndex) {
 						//TJM: Instead of getting all the items...only retrive those that we haven't processed yet.
 						filtrItems = $(self.find(filtrItemClassSelector).slice(sliceEndIndex));
 						domIndexStart = this._mainArray.length;
